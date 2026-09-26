@@ -11,23 +11,18 @@ const brands = {
   Mizuno: ['Wave Rider 28', 'Wave Prophecy LS']
 };
 const colors = ['Black/White', 'Triple White', 'Grey', 'Sail/Red', 'Navy', 'Green', 'Cream', 'Silver/Blue'];
-const images = [
-  'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=85',
-  'https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&w=900&q=85',
-  'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=900&q=85',
-  'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?auto=format&fit=crop&w=900&q=85'
-];
 
 function samples(q) {
-  const term = q.toLowerCase();
+  const terms = q.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
   let id = 1;
   const results = [];
   for (const [brand, models] of Object.entries(brands)) for (const model of models) for (let variant = 0; variant < 2; variant++) {
     const current = id++;
     const colorway = colors[(current * 3) % colors.length];
     const skuStyleCode = `${brand.slice(0, 2).toUpperCase()}-${String(current).padStart(5, '0')}`;
-    const productName = `${brand} ${model}`;
-    if (term && !`${productName} ${colorway} ${skuStyleCode}`.toLowerCase().includes(term)) continue;
+    const productName = model.toLocaleLowerCase().includes(brand.toLocaleLowerCase()) ? model : `${brand} ${model}`;
+    const searchFields = `${productName} ${brand} ${model} ${colorway} ${skuStyleCode}`.toLocaleLowerCase();
+    if (!terms.every(term => searchFields.includes(term))) continue;
     const price = brand === 'Jordan' ? 150 + variant * 12 : ['HOKA', 'On'].includes(brand) ? 145 + variant * 10 : 105 + variant * 8;
     for (const [marketplace, country, mult, shipping, tax, delivery] of [
       ['Demo US Retailer', 'USA', 1, 25, .22, '8–14 days'], ['Demo UK Retailer', 'UK', 1.08, 20, .2, '8–13 days'],
@@ -39,7 +34,7 @@ function samples(q) {
       const deliveryDays = delivery.match(/\d+/g).map(Number).reduce((sum, day) => sum + day, 0) / 2;
       results.push({
         id: `demo:${current}:${marketplace}`, productName, brand, model, skuStyleCode, colorway,
-        imageUrl: images[(current - 1) % images.length], listingUrl: null, marketplace, seller: null,
+        imageUrl: null, listingUrl: null, marketplace, seller: null,
         country, sourceType: marketplace.includes('Marketplace') ? 'Marketplace' : 'Retail',
         currency: 'USD', price: sourcePrice, availableSizes: null,
         shipping: { amount: shipping, currency: 'USD', estimate: true },
