@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SoleScout — Global Sneaker Sourcing</title>
+<link rel="stylesheet" href="/css/styles.css"/>
+</head>
+<body>
+<header class="top"><div class="brand">SoleScout</div><div class="tag">Global sneaker sourcing • India MVP</div></header>
+<section class="hero"><h1>Find the best way to get your sneaker in India.</h1><p>Compare global sneaker prices, size availability and estimated landed cost — not just sticker price.</p><form class="search" id="searchForm"><input id="q" value="Jordan 4 Military Black" placeholder="Search brand, model, SKU or style code"/><button type="submit">Search</button></form></section>
+<main class="wrap">
+<div id="dataNotice" class="data-notice" role="status"></div>
+<div class="filters">
+  <select id="size" aria-label="Size"><option value="">Any size / provider-reported only</option><option>UK 9</option><option>UK 8</option><option>UK 10</option><option>UK 11</option><option>UK 7</option><option>UK 12</option></select>
+  <select id="brand" aria-label="Brand"><option value="">All brands</option></select>
+  <select id="country" aria-label="Source country"><option value="">Any source country</option><option>USA</option><option>UK</option><option>EU</option><option>India</option></select>
+  <select id="type" aria-label="Source type"><option value="">All source types</option><option>Retail</option><option>Marketplace</option></select>
+  <select id="sort" aria-label="Sort listings"><option value="lowest_landed">Sort: lowest landed cost</option><option value="lowest_price">Lowest price</option><option value="fastest_delivery">Fastest delivery</option></select>
+</div>
+<div class="summary"><strong id="count"></strong><span class="pill">India destination</span></div>
+<div id="grid" class="grid" aria-live="polite"></div>
+<div id="details" class="panel"></div>
+<div id="imageModal" class="image-modal" aria-hidden="true"><button id="closeImage" aria-label="Close">×</button><img id="modalImg" src="" alt="Sneaker product image"></div>
+<p class="notice">Estimated duties, shipping eligibility and landed costs require verified provider data and calculation. Always confirm final costs before purchasing.</p>
+</main>
+<footer class="footer">SoleScout MVP • Provider-independent data layer • Live listings are shown only when supplied by connected providers.</footer>
+<script type="module" src="/js/app.js"></script>
+</body></html>
