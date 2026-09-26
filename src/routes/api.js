@@ -7,7 +7,6 @@ export function createApiRouter(providers, config) {
   router.get('/search', async (req, res, next) => {
     try {
       const q = String(req.query.q || '').trim();
-      if (!q) return res.status(400).json({ error: 'missing_query', message: 'Provide a search query using ?q=.' });
       const result = await searchListings(providers, config, {
         q, brand: req.query.brand || '', size: req.query.size || '', country: req.query.country || '',
         type: req.query.type || '', sort: req.query.sort || 'lowest_landed'

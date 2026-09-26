@@ -33,7 +33,7 @@ The demo fallback is only enabled outside production. It is never represented as
 ## API
 
 - `GET /api/health` reports the configured status of providers.
-- `GET /api/search?q=...` searches providers. Optional query parameters: `brand`, `size`, `country`, `type`, and `sort` (`lowest_landed`, `lowest_price`, or `fastest_delivery`).
+- `GET /api/search?q=...` searches providers. The `q` parameter may be omitted to browse the development fallback catalog; live providers are not queried without a search term. Optional query parameters: `brand`, `size`, `country`, `type`, and `sort`. Supported sort values are `relevance` (query match relevance), `name` (A–Z), `lowest_price` (price low to high), `lowest_landed` (estimated landed INR, lowest first), and `fastest_delivery` (estimated delivery, fastest first).
 - `GET /api/products/:id` fetches a listing by provider-prefixed ID, such as `ebay:<item-id>`.
 
 Listing records share a normalized shape: product name, brand/model/style/colorway, image and listing URLs, marketplace, seller, country/source type, currency and price, provider-reported sizes, shipping, estimated duties/taxes and landed INR cost, availability, and data mode. Fields the provider does not supply or that the app cannot reliably calculate are `null`; they are not inferred as facts. In particular, this MVP does not yet calculate live FX, duties, or INR landed costs for eBay listings.

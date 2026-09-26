@@ -11,16 +11,35 @@ function passesFilters(listing, filters) {
   return true;
 }
 
-function sortListings(listings, sort) {
+function sortListings(listings, sort, query = '') {
   const copy = [...listings];
   if (sort === 'lowest_price') return copy.sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity));
   if (sort === 'fastest_delivery') return copy.sort((a, b) => (a.deliveryDays ?? Infinity) - (b.deliveryDays ?? Infinity));
+  if (sort === 'name') return copy.sort((a, b) => (a.productName || '').localeCompare(b.productName || '', undefined, { sensitivity: 'base', numeric: true }));
+  if (sort === 'relevance' && query.trim()) {
+    const terms = query.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
+    const score = listing => {
+      const name = String(listing.productName || '').toLocaleLowerCase();
+      const model = String(listing.model || '').toLocaleLowerCase();
+      const brand = String(listing.brand || '').toLocaleLowerCase();
+      const sku = String(listing.skuStyleCode || '').toLocaleLowerCase();
+      return terms.reduce((total, term) => total
+        + (name === term ? 100 : name.startsWith(term) ? 30 : name.includes(term) ? 20 : 0)
+        + (model === term ? 15 : model.includes(term) ? 10 : 0)
+        + (brand === term ? 12 : brand.includes(term) ? 8 : 0)
+        + (sku.includes(term) ? 5 : 0), 0);
+    };
+    return copy.map((listing, index) => ({ listing, index, score: score(listing) }))
+      .sort((a, b) => b.score - a.score || a.index - b.index)
+      .map(entry => entry.listing);
+  }
   return copy.sort((a, b) => (a.estimatedLandedInr ?? Infinity) - (b.estimatedLandedInr ?? Infinity));
 }
 
 export async function searchListings(providers, config, filters) {
   const results = await Promise.all(providers.live.map(async provider => {
     if (provider.status === 'not_configured') return { provider: provider.name, status: 'not_configured', listings: [] };
+    if (!filters.q?.trim()) return { provider: provider.name, status: 'not_searched', listings: [] };
     try {
       const result = await provider.search({ q: filters.q, limit: 50 });
       return { provider: provider.name, status: result.status, listings: result.listings };
@@ -39,7 +58,7 @@ export async function searchListings(providers, config, filters) {
     ? [...results, { provider: providers.demo.name, status: 'development_fallback', count: filtered.length }]
     : results.map(result => ({ provider: result.provider, status: result.status, count: result.listings.length, ...(result.error ? { error: result.error } : {}) }));
   const status = usingDemo ? 'development_fallback' : filtered.length ? 'ok' : results.every(result => result.status === 'not_configured') ? 'not_configured' : 'ok';
-  return { query: filters.q, status, mode: usingDemo ? 'development_fallback' : 'live', providers: providersStatus, count: filtered.length, listings: sortListings(filtered, filters.sort) };
+  return { query: filters.q, status, mode: usingDemo ? 'development_fallback' : 'live', providers: providersStatus, count: filtered.length, listings: sortListings(filtered, filters.sort, filters.q) };
 }
 
 export async function getListing(providers, id) {
