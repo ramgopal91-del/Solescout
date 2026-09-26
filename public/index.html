@@ -6,8 +6,8 @@
 <link rel="stylesheet" href="/css/styles.css"/>
 </head>
 <body>
-<header class="top"><div class="brand">SoleScout</div><div class="tag">Global sneaker sourcing • India MVP</div></header>
-<section class="hero"><h1>Find the best way to get your sneaker in India.</h1><p>Compare global sneaker prices, size availability and estimated landed cost — not just sticker price.</p><form class="search" id="searchForm" autocomplete="off"><input id="q" name="q" type="search" autocomplete="off" placeholder="Search brand, model, SKU or style code"/><button type="submit">Search</button></form></section>
+<header class="top"><a class="brand" href="/" aria-label="SoleScout home">SoleScout</a><div class="tag">Sneaker discovery, direct from the source</div></header>
+<section class="hero"><div class="hero-inner"><p class="eyebrow">THE PAIR YOU WANT, FOUND</p><h1>Find the pair. Find the price. Buy from the source.</h1><p class="hero-copy">Search authentic sneakers across trusted retailers and discover the actual products, prices and purchase links in one place.</p><form class="search" id="searchForm" autocomplete="off"><input id="q" name="q" type="search" autocomplete="off" placeholder="Search for a sneaker — e.g. Nike Dunk Low, adidas Samba, New Balance 9060"/><button type="submit">Search</button></form><p class="search-hint">Search by brand or model. Compare real product pages from connected retailers.</p></div></section>
 <main class="wrap">
 <div id="dataNotice" class="data-notice" role="status"></div>
 <div class="filters">
@@ -20,13 +20,13 @@
 </div>
 <div id="filterNote" class="filter-note" role="status"></div>
 <div class="sort-note">Listings without the selected sort value appear after listings with available values.</div>
-<div class="summary"><strong id="count"></strong><span class="pill">India destination</span></div>
+<div class="summary"><strong id="count"></strong><div class="summary-actions"><button id="clearFilters" class="clear-filters" type="button" hidden>Back to all live listings</button><label class="demo-toggle"><input id="showDemo" type="checkbox"><span>Include DEMO samples</span></label><span class="pill">Shopping in India</span></div></div>
 <div id="grid" class="grid" aria-live="polite"></div>
-<button id="showMore" class="show-more" type="button" hidden>Show more listings</button>
+<nav id="pagination" class="pagination" aria-label="Search result pages" hidden><button id="previousPage" type="button">Previous</button><span id="pageInfo" aria-live="polite"></span><button id="nextPage" type="button">Next</button></nav>
 <div id="detailsModal" class="details-modal" aria-hidden="true"><section class="details-dialog" role="dialog" aria-modal="true" aria-labelledby="detailsTitle" tabindex="-1"><button id="closeDetails" class="details-close" aria-label="Close details">×</button><div id="detailsContent"></div></section></div>
 <div id="imageModal" class="image-modal" aria-hidden="true"><button id="closeImage" aria-label="Close">×</button><img id="modalImg" src="" alt="Sneaker product image"></div>
-<p class="notice">Estimated duties, shipping eligibility and landed costs require verified provider data and calculation. Always confirm final costs before purchasing.</p>
+<p class="notice">Prices and product details are provided by each retailer. Confirm size availability, shipping and final price on the retailer’s product page.</p>
 </main>
-<footer class="footer">SoleScout MVP • Provider-independent data layer • Live listings are shown only when supplied by connected providers.</footer>
+<footer class="footer"><span class="footer-brand">SoleScout</span><span>Discover here. Buy directly from the retailer.</span></footer>
 <script type="module" src="/js/app.js"></script>
 </body></html>

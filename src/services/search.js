@@ -4,9 +4,14 @@ function passesFilters(listing, filters) {
   if (filters.brand && normalize(listing.brand) !== normalize(filters.brand)) return false;
   if (filters.country && normalize(listing.country) !== normalize(filters.country)) return false;
   if (filters.type && normalize(listing.sourceType) !== normalize(filters.type)) return false;
+  if (filters.marketplace && normalize(listing.marketplace) !== normalize(filters.marketplace)
+    && normalize(listing.provider) !== normalize(filters.marketplace)) return false;
   if (filters.size) {
-    if (!Array.isArray(listing.availableSizes)) return false;
-    if (!listing.availableSizes.some(size => normalize(size) === normalize(filters.size))) return false;
+    const confirmed = Array.isArray(listing.availableSizes) ? listing.availableSizes : [];
+    const reported = Array.isArray(listing.reportedSizes) ? listing.reportedSizes
+      : Array.isArray(listing.sizes) ? listing.sizes : [];
+    const sizeLabels = [...confirmed, ...reported.map(size => typeof size === 'object' ? size.label : size)];
+    if (!sizeLabels.some(size => normalize(size) === normalize(filters.size))) return false;
   }
   return true;
 }
@@ -37,33 +42,44 @@ function sortListings(listings, sort, query = '') {
 }
 
 export async function searchListings(providers, config, filters) {
-  const results = await Promise.all(providers.live.map(async provider => {
+  const sourceProviders = [...providers.live, ...(providers.retailers || [])];
+  const retailerIds = new Set((providers.retailers || []).map(provider => provider.id));
+  const page = Math.max(0, Number.parseInt(filters.page, 10) || 0);
+  const results = await Promise.all(sourceProviders.map(async provider => {
     if (provider.status === 'not_configured') return { provider: provider.name, status: 'not_configured', listings: [] };
-    if (!filters.q?.trim()) return { provider: provider.name, status: 'not_searched', listings: [] };
+    if (!filters.q?.trim() && !retailerIds.has(provider.id)) return { provider: provider.name, status: 'not_searched', listings: [] };
     try {
-      const result = await provider.search({ q: filters.q, limit: 50 });
-      return { provider: provider.name, status: result.status, listings: result.listings };
+      const result = retailerIds.has(provider.id)
+        ? await provider.search({ q: filters.q, brand: filters.brand, limit: 6, offset: page * 6 })
+        : page === 0 ? await provider.search({ q: filters.q, limit: 50 }) : { status: 'live', listings: [], hasMore: false };
+      return { provider: provider.name, status: result.status, listings: result.listings, hasMore: Boolean(result.hasMore), ...(result.partial ? { partial: true } : {}), ...(result.error ? { error: result.error } : {}) };
     } catch (error) {
       return { provider: provider.name, status: 'error', listings: [], error: error.message };
     }
   }));
 
   const liveListings = results.flatMap(result => result.listings).filter(item => passesFilters(item, filters));
-  const usingDemo = liveListings.length === 0 && config.demoFallback && providers.demo;
+  const usingDemo = liveListings.length === 0 && page === 0 && config.demoFallback && providers.demo;
   const listings = usingDemo
     ? (await providers.demo.search({ q: filters.q })).listings.filter(item => passesFilters(item, { ...filters, size: null }))
     : liveListings;
   const filtered = listings.filter(item => passesFilters(item, filters));
   const providersStatus = usingDemo
     ? [...results, { provider: providers.demo.name, status: 'development_fallback', count: filtered.length }]
-    : results.map(result => ({ provider: result.provider, status: result.status, count: result.listings.length, ...(result.error ? { error: result.error } : {}) }));
+    : results.map(result => ({ provider: result.provider, status: result.status, count: result.listings.length, ...(result.partial ? { partial: true } : {}), ...(result.error ? { error: result.error } : {}) }));
   const status = usingDemo ? 'development_fallback' : filtered.length ? 'ok' : results.every(result => result.status === 'not_configured') ? 'not_configured' : 'ok';
-  return { query: filters.q, status, mode: usingDemo ? 'development_fallback' : 'live', providers: providersStatus, count: filtered.length, listings: sortListings(filtered, filters.sort, filters.q) };
+  const hasMore = !usingDemo && results.some(result => result.hasMore);
+  return { query: filters.q, page, pageSize: usingDemo ? filtered.length : 12, hasMore, status, mode: usingDemo ? 'development_fallback' : 'live', providers: providersStatus, count: filtered.length, listings: sortListings(filtered, filters.sort, filters.q) };
 }
 
 export async function getListing(providers, id) {
   if (id.startsWith('demo:') && providers.demo) return providers.demo.getProduct(id);
   const [providerName, ...externalId] = id.split(':');
+  const retailer = providers.retailers?.find(item => item.id === providerName.toLowerCase());
+  if (retailer) {
+    try { return await retailer.getProduct(id); }
+    catch (error) { return { status: 'error', listing: null, error: error.message }; }
+  }
   const provider = providers.live.find(item => item.name.toLowerCase() === providerName.toLowerCase());
   if (!provider) return { status: 'not_found', listing: null };
   if (provider.status === 'not_configured') return { status: 'not_configured', listing: null };

@@ -33,7 +33,8 @@ The demo fallback is only enabled outside production. It is never represented as
 ## API
 
 - `GET /api/health` reports the configured status of providers.
-- `GET /api/search?q=...` searches providers. The `q` parameter may be omitted to browse the development fallback catalog; live providers are not queried without a search term. Optional query parameters: `brand`, `size`, `country`, `type`, and `sort`. Supported sort values are `relevance` (query match relevance), `name` (A–Z), `lowest_price` (price low to high), `lowest_landed` (estimated landed INR, lowest first), and `fastest_delivery` (estimated delivery, fastest first).
+- `GET /api/search?q=...` searches providers. Omit `q` to browse the live retailer catalog. Results are paginated at 12 per page with the `page` parameter (zero-based). Optional filters include `brand`, `size`, `country`, `type`, and `marketplace`; `sort` supports `relevance`, `name`, `lowest_price`, `lowest_landed`, and `fastest_delivery`.
+- `GET /api/retailers` reports the retailer capability review; `GET /api/retailers/search?q=...` tests retailer sources directly.
 - `GET /api/products/:id` fetches a listing by provider-prefixed ID, such as `ebay:<item-id>`.
 
 Listing records share a normalized shape: product name, brand/model/style/colorway, image and listing URLs, marketplace, seller, country/source type, currency and price, provider-reported sizes, shipping, estimated duties/taxes and landed INR cost, availability, and data mode. Fields the provider does not supply or that the app cannot reliably calculate are `null`; they are not inferred as facts. In particular, this MVP does not yet calculate live FX, duties, or INR landed costs for eBay listings.
@@ -44,6 +45,7 @@ Listing records share a normalized shape: product name, brand/model/style/colorw
 
 - **eBay Browse API:** Implemented with server-side client-credentials OAuth. It is `not_configured` until both `EBAY_CLIENT_ID` and `EBAY_CLIENT_SECRET` are set. The integration requests listing summaries and individual item details. It does not invent size, brand, shipping, or landed-cost data.
 - **StockX:** Adapter placeholder; reports `not_configured` and returns no listings.
+- **Direct retailers:** Crepdog Crew and The Mainstreet Marketplace are connected through their documented public sitemap and product JSON sources. Browse/search returns live product records, with direct product-page links, actual source images and prices. Results are paginated; size variants are reported by the merchant, while stock availability remains unknown. See [providers/retailers/README.md](providers/retailers/README.md) for source details and limitations.
 - **Development fallback:** Optional generated sample catalog enabled only by `DEMO_FALLBACK=true` in a non-production environment. The UI displays a prominent warning and marks each sample.
 
 Provider responses may be live, empty, unconfigured, or error. Empty provider searches do not imply that a product is unavailable in the marketplace.
